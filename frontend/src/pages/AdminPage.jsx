@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import axios from 'axios'
 
 const api = (password) => axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_URL,
   headers: { 'x-admin-password': password },
 })
 
