@@ -86,7 +86,7 @@ export default function HomePage() {
           </p>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link to="/wall" className="btn btn-pink" style={{ fontSize: '1rem' }}>
-              💌 See the wall of messages
+              💌 See the message wall
             </Link>
             <Link to="/cake" className="btn btn-outline" style={{ fontSize: '1rem' }}>
               🎂 Blow the candles
@@ -161,7 +161,7 @@ export default function HomePage() {
         marginTop: 40,
       }}>
         <p style={{ fontFamily: 'var(--font-head)', fontSize: '1.4rem', color: 'var(--pink-d)', marginBottom: 8 }}>
-          Made with every bit of love I have 💖
+          Enjoy your special day! 💖
         </p>
         <p style={{ color: '#888', fontSize: '.9rem' }}>Happy Birthday, love!</p>
         <p style={{ color: '#888', fontSize: '.9rem' }}>07/25/2026</p>
