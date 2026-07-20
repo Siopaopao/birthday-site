@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from database import engine, SessionLocal, create_tables, seed_data, WallMessage
-from routers import messages, timeline, quiz, private, admin
+from routers import messages, private, admin
 from routers.gallery import router as gallery_router
 from ws_manager import manager
 
