@@ -194,7 +194,6 @@ function SubmitForm({ onSubmitted }) {
 
   const validate = () => {
     const e = {}
-    if (!name.trim())  e.name  = 'Your name is required'
     if (!photo)        e.photo = 'Please select a photo'
     return e
   }
@@ -267,14 +266,14 @@ function SubmitForm({ onSubmitted }) {
       </p>
 
       <div className="form-group" style={{ marginBottom: 14 }}>
-        <label className="form-label">Your name *</label>
+        <label className="form-label">Your name (optional)</label>
         <input
           className="input"
           value={name}
           onChange={e => setName(e.target.value)}
           placeholder="e.g. Sarah"
         />
-        {errors.name && <span style={{ color: '#dc2626', fontSize: '.8rem' }}>{errors.name}</span>}
+        
       </div>
 
       <div className="form-group" style={{ marginBottom: 14 }}>
