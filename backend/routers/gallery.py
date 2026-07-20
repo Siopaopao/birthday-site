@@ -46,14 +46,11 @@ class PhotoOut(BaseModel):
 # ── Routes ────────────────────────────────────────────────────────────────────
 @router.post("", status_code=201)
 async def submit_photo(
-    sender_name: str = Form(...),
+    sender_name: Optional[str] = Form(None),
     caption: Optional[str] = Form(None),
     photo: UploadFile = File(...),
     db: Session = Depends(get_db),
 ):
-    if not sender_name.strip():
-        raise HTTPException(400, "Name is required")
-
     if photo.content_type not in ALLOWED_TYPES:
         raise HTTPException(400, "Only JPEG, PNG, GIF, or WebP images are allowed")
 
@@ -69,7 +66,7 @@ async def submit_photo(
         await f.write(contents)
 
     db_photo = GalleryPhoto(
-        sender_name=sender_name.strip(),
+        sender_name=sender_name.strip() if sender_name else "",
         caption=caption.strip() if caption and caption.strip() else None,
         photo_url=f"/static/uploads/{filename}",
         approved=False,
