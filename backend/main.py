@@ -2,10 +2,13 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPExcept
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
-import os, json
+import os
 from dotenv import load_dotenv
 
 load_dotenv()
+
+import pymysql
+pymysql.install_as_MySQLdb()
 
 from database import engine, SessionLocal, create_tables, seed_data, WallMessage
 from routers import messages, private, admin
@@ -25,14 +28,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Static file serving (uploaded photos)
 os.makedirs("static/uploads", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(messages.router)
-app.include_router(timeline.router)
-app.include_router(quiz.router)
 app.include_router(private.router)
 app.include_router(admin.router)
 app.include_router(gallery_router)
@@ -55,7 +55,7 @@ def health():
     return {"status": "ok"}
 
 
-# ── WebSocket: live wall updates ──────────────────────────────────────────────
+# ── WebSocket ─────────────────────────────────────────────────────────────────
 @app.websocket("/ws/wall")
 async def wall_ws(websocket: WebSocket):
     await manager.connect(websocket)
