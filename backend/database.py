@@ -3,7 +3,10 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 import os
+import pymysql
+pymysql.install_as_MySQLdb()
 from dotenv import load_dotenv
+
 
 load_dotenv()
 
@@ -84,12 +87,12 @@ def seed_data(db):
     if db.query(QuizQuestion).count() == 0:
         questions = [
             QuizQuestion(
-                question="What is her absolute favourite food?",
-                correct_answer="Carbonara",
-                option_a="Spaghetti carbonara",
-                option_b="Chicken adobo",
-                option_c="Ramen",
-                option_d="Pizza",
+                question="What is her absolute favourite drink?",
+                correct_answer="Matcha Latte",
+                option_a="Spanish Latte",
+                option_b="Matcha Latte",
+                option_c="Coke",
+                option_d="Kitkat Frappe",
                 fun_fact="She could eat carbonara every single day and never get tired of it!"
             ),
             QuizQuestion(
@@ -127,6 +130,15 @@ def seed_data(db):
                 option_c="La La Land",
                 option_d="Pride and Prejudice (2005)",
                 fun_fact="She has seen it at least 30 times and still cries at the same scenes."
+            ),
+            QuizQuestion(
+                question="What stresses her out the MOST?",
+                correct_answer="Hot weather",
+                option_a="Slow walkers",
+                option_b="Entitled people",
+                option_c="Hot weather",
+                option_d="Loud/Crowded places",
+                fun_fact="All of the above! But heat will always be her number one enemy. *Ayaw jud tawn kalimiti ang jisu life*"
             ),
         ]
         db.add_all(questions)
