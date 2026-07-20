@@ -1,12 +1,11 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import Navbar    from './components/Navbar'
-import HomePage  from './pages/HomePage'
-import WallPage  from './pages/WallPage'
-import TimelinePage from './pages/TimelinePage'
-import GamePage  from './pages/GamePage'
-import CakePage  from './pages/CakePage'
+import Navbar      from './components/Navbar'
+import HomePage    from './pages/HomePage'
+import WallPage    from './pages/WallPage'
+import GalleryPage from './pages/GalleryPage'
+import CakePage    from './pages/CakePage'
 import PrivatePage from './pages/PrivatePage'
-import AdminPage from './pages/AdminPage'
+import AdminPage   from './pages/AdminPage'
 
 export default function App() {
   return (
@@ -22,8 +21,7 @@ export default function App() {
             <Routes>
               <Route path="/"         element={<HomePage />}   />
               <Route path="/wall"     element={<WallPage />}   />
-              <Route path="/timeline" element={<TimelinePage />} />
-              <Route path="/game"     element={<GamePage />}   />
+              <Route path="/gallery"  element={<GalleryPage />} />
               <Route path="/cake"     element={<CakePage />}   />
               <Route path="/private"  element={<PrivatePage />} />
             </Routes>

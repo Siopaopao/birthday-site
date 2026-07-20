@@ -13,8 +13,13 @@ export const postMessage = (formData) =>
     headers: { 'Content-Type': 'multipart/form-data' },
   }).then(r => r.data)
 
-// ── Timeline ─────────────────────────────────────────────────────────────────
-export const getTimeline = () => api.get('/timeline').then(r => r.data)
+// ── Gallery ──────────────────────────────────────────────────────────────────
+export const getGallery = () => api.get('/gallery').then(r => r.data)
+
+export const submitPhoto = (formData) =>
+  api.post('/gallery', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }).then(r => r.data)
 
 // ── Quiz ─────────────────────────────────────────────────────────────────────
 export const getQuizQuestions = () => api.get('/quiz/questions').then(r => r.data)

@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import axios from 'axios'
 
+const API = import.meta.env.VITE_API_URL
+
 const api = (password) => axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: API,
   headers: { 'x-admin-password': password },
 })
 
@@ -11,9 +13,10 @@ export default function AdminPage() {
   const [password, setPassword]   = useState('')
   const [authed, setAuthed]       = useState(false)
   const [messages, setMessages]   = useState([])
+  const [photos, setPhotos]       = useState([])
   const [loading, setLoading]     = useState(false)
   const [error, setError]         = useState('')
-  const [filter, setFilter]       = useState('pending')  // pending | approved | all
+  const [tab, setTab]             = useState('messages')  // messages | gallery
 
   const login = async (ev) => {
     ev.preventDefault()
@@ -23,6 +26,7 @@ export default function AdminPage() {
       setMessages(res.data)
       setAuthed(true)
       setError('')
+      loadPhotos(password)
     } catch {
       setError('Wrong admin password')
     } finally {
@@ -30,7 +34,16 @@ export default function AdminPage() {
     }
   }
 
-  const reload = async () => {
+  const loadPhotos = async (pw) => {
+    try {
+      const res = await axios.get(`${API}/gallery/admin/all`, {
+        headers: { 'x-admin-password': pw || password },
+      })
+      setPhotos(res.data)
+    } catch {}
+  }
+
+  const reloadMessages = async () => {
     try {
       const res = await api(password).get('/admin/messages')
       setMessages(res.data)
@@ -52,14 +65,29 @@ export default function AdminPage() {
     } catch {}
   }
 
-  const filtered = messages.filter(m =>
-    filter === 'all'      ? true :
-    filter === 'pending'  ? !m.approved :
-                            m.approved
-  )
+  const approvePhoto = async (id) => {
+    try {
+      await axios.patch(`${API}/gallery/admin/${id}/approve`, {}, {
+        headers: { 'x-admin-password': password },
+      })
+      setPhotos(prev => prev.map(p => p.id === id ? { ...p, approved: true } : p))
+    } catch {}
+  }
 
-  const pendingCount  = messages.filter(m => !m.approved).length
-  const approvedCount = messages.filter(m => m.approved).length
+  const deletePhoto = async (id) => {
+    if (!window.confirm('Delete this photo permanently?')) return
+    try {
+      await axios.delete(`${API}/gallery/admin/${id}`, {
+        headers: { 'x-admin-password': password },
+      })
+      setPhotos(prev => prev.filter(p => p.id !== id))
+    } catch {}
+  }
+
+  const msgPending  = messages.filter(m => !m.approved).length
+  const msgApproved = messages.filter(m => m.approved).length
+  const phoPending  = photos.filter(p => !p.approved).length
+  const phoApproved = photos.filter(p => p.approved).length
 
   if (!authed) {
     return (
@@ -75,7 +103,7 @@ export default function AdminPage() {
             🔑 Admin Login
           </h2>
           <p style={{ color: '#888', fontSize: '.88rem', textAlign: 'center', marginBottom: 22 }}>
-            Manage and approve wall messages
+            Manage messages and photos
           </p>
           <div className="form-group" style={{ marginBottom: 18 }}>
             <label className="form-label">Admin password</label>
@@ -97,108 +125,197 @@ export default function AdminPage() {
 
   return (
     <div style={{ paddingTop: 80, minHeight: '100vh', background: '#f9fafb' }}>
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '40px 24px' }}>
+      <div style={{ maxWidth: 960, margin: '0 auto', padding: '40px 24px' }}>
+
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
           <div>
             <h1 style={{ fontFamily: 'var(--font-head)', fontSize: '2rem' }}>Admin Panel</h1>
             <p style={{ color: '#888', fontSize: '.9rem' }}>
-              {pendingCount} pending · {approvedCount} approved
+              {msgPending} messages pending · {phoPending} photos pending
             </p>
           </div>
-          <button onClick={reload} className="btn btn-ghost">🔄 Refresh</button>
+          <button onClick={() => { reloadMessages(); loadPhotos() }} className="btn btn-ghost">
+            🔄 Refresh
+          </button>
         </div>
 
-        {/* Filter tabs */}
-        <div style={{ display: 'flex', gap: 10, marginBottom: 24 }}>
+        {/* Tab switcher */}
+        <div style={{
+          display: 'flex', background: '#f3f4f6', borderRadius: 14,
+          padding: 4, marginBottom: 28, maxWidth: 420,
+        }}>
           {[
-            { id: 'pending',  label: `⏳ Pending (${pendingCount})` },
-            { id: 'approved', label: `✅ Approved (${approvedCount})` },
-            { id: 'all',      label: `📋 All (${messages.length})` },
-          ].map(f => (
+            { id: 'messages', label: `💌 Messages (${messages.length})` },
+            { id: 'gallery',  label: `📸 Gallery (${photos.length})` },
+          ].map(t => (
             <button
-              key={f.id}
-              onClick={() => setFilter(f.id)}
+              key={t.id}
+              onClick={() => setTab(t.id)}
               style={{
-                padding: '8px 18px', borderRadius: 20, border: 'none',
+                flex: 1, padding: '10px 16px', borderRadius: 10, border: 'none',
                 cursor: 'pointer', fontWeight: 500, fontSize: '.88rem',
-                background: filter === f.id ? 'var(--pink-d)' : '#e5e7eb',
-                color: filter === f.id ? '#fff' : '#555',
+                fontFamily: 'var(--font-body)', transition: 'all .2s',
+                background: tab === t.id ? '#fff' : 'transparent',
+                color: tab === t.id ? 'var(--pink-d)' : '#888',
+                boxShadow: tab === t.id ? '0 2px 8px rgba(0,0,0,.08)' : 'none',
               }}
             >
-              {f.label}
+              {t.label}
             </button>
           ))}
         </div>
 
-        {/* Message cards */}
-        {filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 0', color: '#aaa' }}>
-            <p>Nothing here yet</p>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {filtered.map(msg => (
-              <motion.div
-                key={msg.id}
-                layout
-                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                style={{
-                  background: '#fff', borderRadius: 16, padding: '18px 20px',
-                  border: `1.5px solid ${msg.approved ? '#d1fae5' : '#fde68a'}`,
-                  boxShadow: '0 2px 8px rgba(0,0,0,.05)',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 6, flexWrap: 'wrap' }}>
-                      <span style={{ fontWeight: 700, fontSize: '.95rem' }}>{msg.sender_name}</span>
-                      <span style={{
-                        background: '#f3f4f6', borderRadius: 20, padding: '2px 10px',
-                        fontSize: '.75rem', color: '#666',
-                      }}>{msg.relationship}</span>
-                      <span style={{
-                        borderRadius: 20, padding: '2px 10px', fontSize: '.75rem', fontWeight: 600,
-                        background: msg.approved ? '#d1fae5' : '#fef3c7',
-                        color: msg.approved ? '#065f46' : '#92400e',
-                      }}>
-                        {msg.approved ? '✅ Approved' : '⏳ Pending'}
-                      </span>
-                    </div>
-                    <p style={{ fontSize: '.92rem', color: '#333', lineHeight: 1.6 }}>{msg.message}</p>
-                    <p style={{ fontSize: '.75rem', color: '#aaa', marginTop: 6 }}>
-                      {new Date(msg.created_at).toLocaleString()}
-                    </p>
-                  </div>
+        {/* ── Messages tab ── */}
+        {tab === 'messages' && (
+          <>
+            {/* Filter tabs */}
+            <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
+              {[
+                { id: 'pending',  label: `⏳ Pending (${msgPending})` },
+                { id: 'approved', label: `✅ Approved (${msgApproved})` },
+                { id: 'all',      label: `📋 All (${messages.length})` },
+              ].map(f => (
+                <button
+                  key={f.id}
+                  onClick={() => setMessages(prev => [...prev])} // just re-render
+                  style={{
+                    padding: '8px 18px', borderRadius: 20, border: 'none',
+                    cursor: 'pointer', fontWeight: 500, fontSize: '.88rem',
+                    background: '#e5e7eb', color: '#555',
+                  }}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
 
-                  {!msg.approved && (
-                    <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-                      <button
-                        onClick={() => approve(msg.id)}
-                        style={{
-                          padding: '8px 16px', borderRadius: 10, border: 'none',
-                          background: '#059669', color: '#fff', cursor: 'pointer',
-                          fontWeight: 600, fontSize: '.88rem',
-                        }}
-                      >
-                        ✅ Approve
-                      </button>
-                      <button
-                        onClick={() => reject(msg.id)}
-                        style={{
-                          padding: '8px 16px', borderRadius: 10, border: 'none',
-                          background: '#dc2626', color: '#fff', cursor: 'pointer',
-                          fontWeight: 600, fontSize: '.88rem',
-                        }}
-                      >
-                        🗑 Delete
-                      </button>
+            {messages.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px 0', color: '#aaa' }}>
+                <p>No messages yet</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {messages.map(msg => (
+                  <motion.div
+                    key={msg.id} layout
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                    style={{
+                      background: '#fff', borderRadius: 16, padding: '18px 20px',
+                      border: `1.5px solid ${msg.approved ? '#d1fae5' : '#fde68a'}`,
+                      boxShadow: '0 2px 8px rgba(0,0,0,.05)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 6, flexWrap: 'wrap' }}>
+                          <span style={{ fontWeight: 700, fontSize: '.95rem' }}>{msg.sender_name}</span>
+                          <span style={{ background: '#f3f4f6', borderRadius: 20, padding: '2px 10px', fontSize: '.75rem', color: '#666' }}>
+                            {msg.relationship}
+                          </span>
+                          <span style={{
+                            borderRadius: 20, padding: '2px 10px', fontSize: '.75rem', fontWeight: 600,
+                            background: msg.approved ? '#d1fae5' : '#fef3c7',
+                            color: msg.approved ? '#065f46' : '#92400e',
+                          }}>
+                            {msg.approved ? '✅ Approved' : '⏳ Pending'}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: '.92rem', color: '#333', lineHeight: 1.6 }}>{msg.message}</p>
+                        <p style={{ fontSize: '.75rem', color: '#aaa', marginTop: 6 }}>
+                          {new Date(msg.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                      {!msg.approved && (
+                        <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                          <button
+                            onClick={() => approve(msg.id)}
+                            style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: '#059669', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '.88rem' }}
+                          >✅ Approve</button>
+                          <button
+                            onClick={() => reject(msg.id)}
+                            style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: '#dc2626', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '.88rem' }}
+                          >🗑 Delete</button>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── Gallery tab ── */}
+        {tab === 'gallery' && (
+          <>
+            <p style={{ color: '#888', fontSize: '.88rem', marginBottom: 20 }}>
+              {phoPending} pending · {phoApproved} approved
+            </p>
+
+            {photos.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px 0', color: '#aaa' }}>
+                <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>📷</div>
+                <p>No photos submitted yet</p>
+              </div>
+            ) : (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                gap: 16,
+              }}>
+                {photos.map(photo => (
+                  <motion.div
+                    key={photo.id} layout
+                    initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+                    style={{
+                      background: '#fff', borderRadius: 16, overflow: 'hidden',
+                      border: `1.5px solid ${photo.approved ? '#d1fae5' : '#fde68a'}`,
+                      boxShadow: '0 2px 8px rgba(0,0,0,.06)',
+                    }}
+                  >
+                    <img
+                      src={`${API}${photo.photo_url}`}
+                      alt=""
+                      style={{ width: '100%', height: 180, objectFit: 'cover', display: 'block' }}
+                    />
+                    <div style={{ padding: '12px 14px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                        <span style={{ fontWeight: 600, fontSize: '.9rem' }}>{photo.sender_name}</span>
+                        <span style={{
+                          borderRadius: 20, padding: '2px 8px', fontSize: '.72rem', fontWeight: 600,
+                          background: photo.approved ? '#d1fae5' : '#fef3c7',
+                          color: photo.approved ? '#065f46' : '#92400e',
+                        }}>
+                          {photo.approved ? '✅ Approved' : '⏳ Pending'}
+                        </span>
+                      </div>
+                      {photo.caption && (
+                        <p style={{ fontSize: '.82rem', color: '#555', fontStyle: 'italic', marginBottom: 8 }}>
+                          "{photo.caption}"
+                        </p>
+                      )}
+                      <p style={{ fontSize: '.72rem', color: '#aaa', marginBottom: 10 }}>
+                        {new Date(photo.created_at).toLocaleString()}
+                      </p>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        {!photo.approved && (
+                          <button
+                            onClick={() => approvePhoto(photo.id)}
+                            style={{ flex: 1, padding: '7px 0', borderRadius: 8, border: 'none', background: '#059669', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '.82rem' }}
+                          >✅ Approve</button>
+                        )}
+                        <button
+                          onClick={() => deletePhoto(photo.id)}
+                          style={{ flex: 1, padding: '7px 0', borderRadius: 8, border: 'none', background: '#dc2626', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '.82rem' }}
+                        >🗑 Delete</button>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

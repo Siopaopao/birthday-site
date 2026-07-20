@@ -2,7 +2,6 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPExcept
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
-from contextlib import asynccontextmanager
 import os, json
 from dotenv import load_dotenv
 
@@ -10,23 +9,11 @@ load_dotenv()
 
 from database import engine, SessionLocal, create_tables, seed_data, WallMessage
 from routers import messages, timeline, quiz, private, admin
+from routers.gallery import router as gallery_router
 from ws_manager import manager
 
-# ── Lifespan event handler ─────────────────────────────────────────────────
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Startup
-    create_tables()
-    db = SessionLocal()
-    try:
-        seed_data(db)
-    finally:
-        db.close()
-    yield
-    # Shutdown (if needed)
-
 # ── App ───────────────────────────────────────────────────────────────────────
-app = FastAPI(title="Birthday Site API", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="Birthday Site API", version="1.0.0")
 
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
 
@@ -48,6 +35,18 @@ app.include_router(timeline.router)
 app.include_router(quiz.router)
 app.include_router(private.router)
 app.include_router(admin.router)
+app.include_router(gallery_router)
+
+
+# ── Startup ───────────────────────────────────────────────────────────────────
+@app.on_event("startup")
+def startup():
+    create_tables()
+    db = SessionLocal()
+    try:
+        seed_data(db)
+    finally:
+        db.close()
 
 
 # ── Health check ──────────────────────────────────────────────────────────────
@@ -62,12 +61,12 @@ async def wall_ws(websocket: WebSocket):
     await manager.connect(websocket)
     try:
         while True:
-            await websocket.receive_text()   # keep-alive ping from client
+            await websocket.receive_text()
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 
 
-# ── Admin approve endpoint also broadcasts via WS ─────────────────────────────
+# ── Admin approve + broadcast ─────────────────────────────────────────────────
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
 
 
@@ -94,7 +93,6 @@ async def approve_and_broadcast(
     db.commit()
     db.refresh(msg)
 
-    # broadcast to all connected clients
     await manager.broadcast({
         "type": "new_message",
         "data": {

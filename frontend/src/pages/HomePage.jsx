@@ -22,11 +22,10 @@ function FloatingEmoji({ emoji, style }) {
 }
 
 const cards = [
-  { to: '/wall',     emoji: '💌', label: 'Message Wall',   desc: 'Read wishes from everyone who loves you', color: 'var(--pink)' },
-  { to: '/timeline', emoji: '📖', label: 'Our Story',      desc: 'Every moment that got us here',           color: 'var(--purple)' },
-  { to: '/game',     emoji: '🎮', label: 'Know Her Quiz',  desc: 'How well do you really know Diane?',      color: 'var(--blue)' },
-  { to: '/cake',     emoji: '🎂', label: 'Birthday Cake',  desc: 'Blow out the candles and make a wish',    color: 'var(--yellow)' },
-  { to: '/private',  emoji: '🔒', label: 'Private Notes',  desc: 'Secret messages just for you',            color: 'var(--coral)' },
+  { to: '/wall',    emoji: '💌', label: 'Wall of Love',    desc: 'Read wishes from everyone who loves you',  color: 'var(--pink)'   },
+  { to: '/gallery', emoji: '📸', label: 'Photo Gallery',   desc: 'Beautiful memories captured just for you', color: 'var(--purple)' },
+  { to: '/cake',    emoji: '🎂', label: 'Birthday Cake',   desc: 'Blow out the candles and make a wish',     color: 'var(--yellow)' },
+  { to: '/private', emoji: '🔒', label: 'Private Notes',   desc: 'Secret messages just for you',             color: 'var(--coral)'  },
 ]
 
 export default function HomePage() {
@@ -46,7 +45,7 @@ export default function HomePage() {
   return (
     <div style={{ minHeight: '100vh', paddingTop: 80 }}>
 
-      {/* Hero ─────────────────────────────────────────────────────────────── */}
+      {/* Hero */}
       <section style={{
         position: 'relative', overflow: 'hidden',
         minHeight: '92vh', display: 'flex', flexDirection: 'column',
@@ -54,7 +53,6 @@ export default function HomePage() {
         background: 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 40%, #ede9fe 100%)',
         textAlign: 'center', padding: '60px 24px',
       }}>
-        {/* Floating emojis */}
         {EMOJIS.map((e, i) => (
           <FloatingEmoji key={i} emoji={e} style={{
             top:  `${10 + (i * 11) % 70}%`,
@@ -69,7 +67,7 @@ export default function HomePage() {
           transition={{ duration: 0.8, ease: 'easeOut' }}
         >
           <p style={{ fontSize: '1.1rem', color: 'var(--pink-d)', fontWeight: 500, marginBottom: 8, letterSpacing: 2 }}>
-             JULY 25, 2026 
+            ✨ HAPPY BIRTHDAY ✨
           </p>
           <h1 style={{
             fontSize: 'clamp(2.8rem, 8vw, 6rem)',
@@ -81,12 +79,12 @@ export default function HomePage() {
             Happy Birthday,<br />Diane! 🎉
           </h1>
           <p style={{ fontSize: 'clamp(1rem, 2.5vw, 1.35rem)', color: '#555', maxWidth: 560, margin: '0 auto 36px' }}>
-            A whole day — made just for you.
+            A whole day — and a whole website — made just for you.
             You are loved by more people than you know. 💕
           </p>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link to="/wall" className="btn btn-pink" style={{ fontSize: '1rem' }}>
-              💌 See the message wall
+              💌 See the love wall
             </Link>
             <Link to="/cake" className="btn btn-outline" style={{ fontSize: '1rem' }}>
               🎂 Blow the candles
@@ -94,7 +92,6 @@ export default function HomePage() {
           </div>
         </motion.div>
 
-        {/* Scroll hint */}
         <motion.div
           animate={{ y: [0, 10, 0] }}
           transition={{ repeat: Infinity, duration: 2 }}
@@ -104,7 +101,7 @@ export default function HomePage() {
         </motion.div>
       </section>
 
-      {/* Feature cards ───────────────────────────────────────────────────── */}
+      {/* Feature cards */}
       <section className="section">
         <h2 className="section-title">Everything made for you 🎀</h2>
         <p className="section-sub">Click anything to explore</p>
@@ -124,11 +121,8 @@ export default function HomePage() {
             >
               <Link to={c.to} style={{ textDecoration: 'none' }}>
                 <div style={{
-                  background: '#fff',
-                  borderRadius: 20,
-                  padding: '28px 22px',
-                  textAlign: 'center',
-                  border: `2px solid transparent`,
+                  background: '#fff', borderRadius: 20, padding: '28px 22px',
+                  textAlign: 'center', border: '2px solid transparent',
                   boxShadow: '0 2px 16px rgba(0,0,0,.06)',
                   transition: 'transform .2s, box-shadow .2s, border-color .2s',
                   cursor: 'pointer',
@@ -154,17 +148,16 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Footer message ──────────────────────────────────────────────────── */}
+      {/* Footer */}
       <footer style={{
         textAlign: 'center', padding: '48px 24px',
         background: 'linear-gradient(135deg, #fdf2f8, #ede9fe)',
         marginTop: 40,
       }}>
         <p style={{ fontFamily: 'var(--font-head)', fontSize: '1.4rem', color: 'var(--pink-d)', marginBottom: 8 }}>
-          Enjoy your special day! 💖
+          Enjoy your day! 💖
         </p>
-        <p style={{ color: '#888', fontSize: '.9rem' }}>Happy Birthday, love!</p>
-        <p style={{ color: '#888', fontSize: '.9rem' }}>07/25/2026</p>
+        <p style={{ color: '#888', fontSize: '.9rem' }}>Happy Birthday, Diane 🌸</p>
       </footer>
     </div>
   )

@@ -2,12 +2,11 @@ import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
 const links = [
-  { to: '/',         label: '🏠 Home' },
-  { to: '/wall',     label: '💌 Wall' },
-  { to: '/timeline', label: '📖 Our Story' },
-  { to: '/game',     label: '🎮 Quiz' },
-  { to: '/cake',     label: '🎂 Cake' },
-  { to: '/private',  label: '🔒 Private' },
+  { to: '/',        label: '🏠 Home' },
+  { to: '/wall',    label: '💌 Wall' },
+  { to: '/gallery', label: '📸 Gallery' },
+  { to: '/cake',    label: '🎂 Cake' },
+  { to: '/private', label: '🔒 Private' },
 ]
 
 export default function Navbar() {
