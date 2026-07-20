@@ -1,9 +1,7 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
 from typing import Optional
 from datetime import datetime, date
 
-
-# ── Wall Messages ────────────────────────────────────────────────────────────
 
 class WallMessageCreate(BaseModel):
     sender_name: str
@@ -11,19 +9,22 @@ class WallMessageCreate(BaseModel):
     message: str
     color: Optional[str] = "pink"
 
-    @validator("sender_name", "relationship", "message")
+    @field_validator("sender_name", "relationship", "message")
+    @classmethod
     def not_empty(cls, v):
         if not v or not v.strip():
             raise ValueError("This field cannot be empty")
         return v.strip()
 
-    @validator("message")
+    @field_validator("message")
+    @classmethod
     def message_length(cls, v):
         if len(v) > 1000:
             raise ValueError("Message must be 1000 characters or fewer")
         return v
 
-    @validator("color")
+    @field_validator("color")
+    @classmethod
     def valid_color(cls, v):
         allowed = {"pink", "yellow", "blue", "green", "purple", "coral"}
         return v if v in allowed else "pink"
@@ -38,11 +39,8 @@ class WallMessageOut(BaseModel):
     color: str
     created_at: datetime
 
-    class Config:
-        orm_mode = True
+    model_config = {"from_attributes": True}
 
-
-# ── Timeline ─────────────────────────────────────────────────────────────────
 
 class TimelineEventOut(BaseModel):
     id: int
@@ -52,11 +50,8 @@ class TimelineEventOut(BaseModel):
     photo_url: Optional[str]
     tag: str
 
-    class Config:
-        orm_mode = True
+    model_config = {"from_attributes": True}
 
-
-# ── Quiz ─────────────────────────────────────────────────────────────────────
 
 class QuizQuestionOut(BaseModel):
     id: int
@@ -66,8 +61,7 @@ class QuizQuestionOut(BaseModel):
     option_c: str
     option_d: str
 
-    class Config:
-        orm_mode = True
+    model_config = {"from_attributes": True}
 
 
 class QuizAnswerCheck(BaseModel):
@@ -86,13 +80,15 @@ class QuizScoreCreate(BaseModel):
     score: int
     total: int
 
-    @validator("player_name")
+    @field_validator("player_name")
+    @classmethod
     def not_empty(cls, v):
         if not v or not v.strip():
             raise ValueError("Name cannot be empty")
         return v.strip()
 
-    @validator("score", "total")
+    @field_validator("score", "total")
+    @classmethod
     def non_negative(cls, v):
         if v < 0:
             raise ValueError("Score cannot be negative")
@@ -106,23 +102,22 @@ class QuizScoreOut(BaseModel):
     total: int
     played_at: datetime
 
-    class Config:
-        orm_mode = True
+    model_config = {"from_attributes": True}
 
-
-# ── Private Messages ─────────────────────────────────────────────────────────
 
 class PrivateMessageCreate(BaseModel):
     sender_name: str
     message: str
 
-    @validator("sender_name", "message")
+    @field_validator("sender_name", "message")
+    @classmethod
     def not_empty(cls, v):
         if not v or not v.strip():
             raise ValueError("This field cannot be empty")
         return v.strip()
 
-    @validator("message")
+    @field_validator("message")
+    @classmethod
     def message_length(cls, v):
         if len(v) > 2000:
             raise ValueError("Message must be 2000 characters or fewer")
@@ -136,15 +131,12 @@ class PrivateMessageOut(BaseModel):
     viewed: bool
     created_at: datetime
 
-    class Config:
-        orm_mode = True
+    model_config = {"from_attributes": True}
 
 
 class PasscodeCheck(BaseModel):
     passcode: str
 
-
-# ── Admin ─────────────────────────────────────────────────────────────────────
 
 class AdminLogin(BaseModel):
     password: str
@@ -160,5 +152,4 @@ class WallMessageAdmin(BaseModel):
     approved: bool
     created_at: datetime
 
-    class Config:
-        orm_mode = True
+    model_config = {"from_attributes": True}
