@@ -67,7 +67,7 @@ export default function HomePage() {
           transition={{ duration: 0.8, ease: 'easeOut' }}
         >
           <p style={{ fontSize: '1.1rem', color: 'var(--pink-d)', fontWeight: 500, marginBottom: 8, letterSpacing: 2 }}>
-            ✨ HAPPY BIRTHDAY ✨
+             07/25/2026 
           </p>
           <h1 style={{
             fontSize: 'clamp(2.8rem, 8vw, 6rem)',
