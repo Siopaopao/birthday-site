@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, Header
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, Header # type: ignore
+from sqlalchemy.orm import Session # type: ignore
 from typing import List, Optional
 import os
 
@@ -48,6 +48,15 @@ def reject_message(
     msg = db.query(WallMessage).filter(WallMessage.id == msg_id).first()
     if not msg:
         raise HTTPException(404, "Message not found")
+    # If the message has an attached photo, delete the file from disk
+    if getattr(msg, 'photo_url', None):
+        filepath = msg.photo_url.replace('/static/', 'static/')
+        try:
+            if os.path.exists(filepath):
+                os.remove(filepath)
+        except Exception:
+            # don't block deletion if file removal fails
+            pass
     db.delete(msg)
     db.commit()
     return {"ok": True, "id": msg_id}

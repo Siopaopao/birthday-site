@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Header
 from sqlalchemy.orm import Session
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text
 from typing import List, Optional
@@ -89,12 +89,17 @@ def get_approved_photos(db: Session = Depends(get_db)):
 
 
 # ── Admin routes ──────────────────────────────────────────────────────────────
+def require_admin(x_admin_password: Optional[str] = Header(None)):
+    if x_admin_password != ADMIN_PASSWORD:
+        raise HTTPException(401, "Unauthorized")
+    return True
+
+
 @router.get("/admin/all")
 def list_all_photos(
-    x_admin_password: Optional[str] = None,
     db: Session = Depends(get_db),
+    _: bool = Depends(require_admin),
 ):
-    from fastapi import Header
     return db.query(GalleryPhoto).order_by(GalleryPhoto.created_at.desc()).all()
 
 
@@ -102,6 +107,7 @@ def list_all_photos(
 def approve_photo(
     photo_id: int,
     db: Session = Depends(get_db),
+    _: bool = Depends(require_admin),
 ):
     photo = db.query(GalleryPhoto).filter(GalleryPhoto.id == photo_id).first()
     if not photo:
@@ -115,6 +121,7 @@ def approve_photo(
 def delete_photo(
     photo_id: int,
     db: Session = Depends(get_db),
+    _: bool = Depends(require_admin),
 ):
     photo = db.query(GalleryPhoto).filter(GalleryPhoto.id == photo_id).first()
     if not photo:

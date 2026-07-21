@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import axios from 'axios'
 
@@ -10,13 +10,13 @@ const api = (password) => axios.create({
 })
 
 export default function AdminPage() {
-  const [password, setPassword]   = useState('')
-  const [authed, setAuthed]       = useState(false)
-  const [messages, setMessages]   = useState([])
-  const [photos, setPhotos]       = useState([])
-  const [loading, setLoading]     = useState(false)
-  const [error, setError]         = useState('')
-  const [tab, setTab]             = useState('messages')  // messages | gallery
+  const [password, setPassword] = useState('')
+  const [authed, setAuthed]     = useState(false)
+  const [messages, setMessages] = useState([])
+  const [photos, setPhotos]     = useState([])
+  const [loading, setLoading]   = useState(false)
+  const [error, setError]       = useState('')
+  const [tab, setTab]           = useState('messages')
 
   const login = async (ev) => {
     ev.preventDefault()
@@ -169,25 +169,13 @@ export default function AdminPage() {
         {/* ── Messages tab ── */}
         {tab === 'messages' && (
           <>
-            {/* Filter tabs */}
             <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
-              {[
-                { id: 'pending',  label: `⏳ Pending (${msgPending})` },
-                { id: 'approved', label: `✅ Approved (${msgApproved})` },
-                { id: 'all',      label: `📋 All (${messages.length})` },
-              ].map(f => (
-                <button
-                  key={f.id}
-                  onClick={() => setMessages(prev => [...prev])} // just re-render
-                  style={{
-                    padding: '8px 18px', borderRadius: 20, border: 'none',
-                    cursor: 'pointer', fontWeight: 500, fontSize: '.88rem',
-                    background: '#e5e7eb', color: '#555',
-                  }}
-                >
-                  {f.label}
-                </button>
-              ))}
+              <span style={{ padding: '8px 18px', borderRadius: 20, background: '#fef3c7', color: '#92400e', fontSize: '.88rem', fontWeight: 500 }}>
+                ⏳ Pending: {msgPending}
+              </span>
+              <span style={{ padding: '8px 18px', borderRadius: 20, background: '#d1fae5', color: '#065f46', fontSize: '.88rem', fontWeight: 500 }}>
+                ✅ Approved: {msgApproved}
+              </span>
             </div>
 
             {messages.length === 0 ? (
@@ -210,9 +198,6 @@ export default function AdminPage() {
                       <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 6, flexWrap: 'wrap' }}>
                           <span style={{ fontWeight: 700, fontSize: '.95rem' }}>{msg.sender_name}</span>
-                          <span style={{ background: '#f3f4f6', borderRadius: 20, padding: '2px 10px', fontSize: '.75rem', color: '#666' }}>
-                            {msg.relationship}
-                          </span>
                           <span style={{
                             borderRadius: 20, padding: '2px 10px', fontSize: '.75rem', fontWeight: 600,
                             background: msg.approved ? '#d1fae5' : '#fef3c7',
@@ -226,18 +211,19 @@ export default function AdminPage() {
                           {new Date(msg.created_at).toLocaleString()}
                         </p>
                       </div>
-                      {!msg.approved && (
-                        <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                      {/* ✅ Delete button always visible, Approve only for pending */}
+                      <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                        {!msg.approved && (
                           <button
                             onClick={() => approve(msg.id)}
                             style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: '#059669', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '.88rem' }}
                           >✅ Approve</button>
-                          <button
-                            onClick={() => reject(msg.id)}
-                            style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: '#dc2626', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '.88rem' }}
-                          >🗑 Delete</button>
-                        </div>
-                      )}
+                        )}
+                        <button
+                          onClick={() => reject(msg.id)}
+                          style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: '#dc2626', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '.88rem' }}
+                        >🗑 Delete</button>
+                      </div>
                     </div>
                   </motion.div>
                 ))}
@@ -249,9 +235,14 @@ export default function AdminPage() {
         {/* ── Gallery tab ── */}
         {tab === 'gallery' && (
           <>
-            <p style={{ color: '#888', fontSize: '.88rem', marginBottom: 20 }}>
-              {phoPending} pending · {phoApproved} approved
-            </p>
+            <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
+              <span style={{ padding: '8px 18px', borderRadius: 20, background: '#fef3c7', color: '#92400e', fontSize: '.88rem', fontWeight: 500 }}>
+                ⏳ Pending: {phoPending}
+              </span>
+              <span style={{ padding: '8px 18px', borderRadius: 20, background: '#d1fae5', color: '#065f46', fontSize: '.88rem', fontWeight: 500 }}>
+                ✅ Approved: {phoApproved}
+              </span>
+            </div>
 
             {photos.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '60px 0', color: '#aaa' }}>
@@ -298,6 +289,7 @@ export default function AdminPage() {
                       <p style={{ fontSize: '.72rem', color: '#aaa', marginBottom: 10 }}>
                         {new Date(photo.created_at).toLocaleString()}
                       </p>
+                      {/* ✅ Approve only for pending, Delete always visible */}
                       <div style={{ display: 'flex', gap: 8 }}>
                         {!photo.approved && (
                           <button

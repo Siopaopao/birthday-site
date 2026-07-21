@@ -5,7 +5,6 @@ import { useWebSocket } from '../hooks/useWebSocket'
 import Toast from '../components/Toast'
 
 const COLORS = ['pink', 'yellow', 'blue', 'green', 'purple', 'coral']
-const RELATIONSHIPS = ['Friend', 'Best Friend', 'Family', 'Classmate', 'Colleague', 'Partner', 'Other']
 
 function MessageCard({ msg, isNew }) {
   return (
@@ -49,7 +48,6 @@ function MessageCard({ msg, isNew }) {
         </div>
         <div>
           <p style={{ fontWeight: 600, fontSize: '.95rem', color: '#1a1a2e' }}>{msg.sender_name}</p>
-          <p style={{ fontSize: '.78rem', color: '#888' }}>{msg.relationship}</p>
         </div>
         <span style={{ marginLeft: 'auto', fontSize: '1.1rem' }}>💕</span>
       </div>
@@ -116,7 +114,8 @@ function PostForm({ onSubmitted }) {
         Leave a wish 💌
       </h3>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+      {/* Name only — relationship removed */}
+      <div style={{ marginBottom: 14 }}>
         <div className="form-group">
           <label className="form-label">Your name *</label>
           <input
@@ -126,17 +125,6 @@ function PostForm({ onSubmitted }) {
             placeholder="e.g. Sarah"
           />
           {errors.sender_name && <span style={{ color: '#dc2626', fontSize: '.8rem' }}>{errors.sender_name}</span>}
-        </div>
-        <div className="form-group">
-          <label className="form-label">Relationship</label>
-          <select
-            className="input"
-            value={form.relationship}
-            onChange={e => setForm(f => ({ ...f, relationship: e.target.value }))}
-            style={{ cursor: 'pointer' }}
-          >
-            {RELATIONSHIPS.map(r => <option key={r}>{r}</option>)}
-          </select>
         </div>
       </div>
 
@@ -209,9 +197,7 @@ function PostForm({ onSubmitted }) {
   )
 }
 
-// Simple 3-column masonry
 function Masonry({ items, newIds }) {
-  // deduplicate by id before rendering
   const seen = new Set()
   const unique = items.filter(m => {
     if (seen.has(m.id)) return false
@@ -241,18 +227,16 @@ export default function WallPage() {
     try {
       const data = await getMessages()
       setMessages(data)
-    } catch { /* silent */ }
+    } catch {}
     finally { setLoading(false) }
   }
 
   useEffect(() => { load() }, [])
 
-  // WebSocket: prepend newly approved messages
   const handleWsMessage = useCallback((event) => {
     if (event.type === 'new_message') {
       const msg = event.data
       setMessages(prev => {
-        // prevent duplicate if message already exists
         if (prev.some(m => m.id === msg.id)) return prev
         return [msg, ...prev]
       })
@@ -281,7 +265,6 @@ export default function WallPage() {
     <div style={{ paddingTop: 80 }}>
       {toast && <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
 
-      {/* Hero banner */}
       <div style={{
         background: 'linear-gradient(135deg, #fdf2f8, #ede9fe)',
         padding: '56px 24px 48px',
@@ -291,7 +274,7 @@ export default function WallPage() {
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           className="section-title" style={{ marginBottom: 8 }}
         >
-          Message Wall 💌
+          Wall of Love 💌
         </motion.h1>
         <p style={{ color: '#888', fontSize: '1.05rem' }}>
           {messages.length} {messages.length === 1 ? 'person has' : 'people have'} written to you
@@ -299,10 +282,8 @@ export default function WallPage() {
       </div>
 
       <div className="section" style={{ paddingTop: 40 }}>
-        {/* Post form */}
         <PostForm onSubmitted={handleSubmitted} />
 
-        {/* Search */}
         <div style={{ maxWidth: 400, margin: '0 auto 32px' }}>
           <input
             className="input"
@@ -312,7 +293,6 @@ export default function WallPage() {
           />
         </div>
 
-        {/* Messages */}
         {loading ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
             {Array.from({ length: 6 }).map((_, i) => (
