@@ -50,7 +50,7 @@ export default function HomePage() {
         position: 'relative', overflow: 'hidden',
         minHeight: '92vh', display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
-        background: 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 40%, #ede9fe 100%)',
+        background: 'linear-gradient(135deg, #f0faf1 0%, #d4edda 40%, #e8f5e9 100%)',
         textAlign: 'center', padding: '60px 24px',
       }}>
         {EMOJIS.map((e, i) => (
@@ -72,7 +72,7 @@ export default function HomePage() {
           <h1 style={{
             fontSize: 'clamp(2.8rem, 8vw, 6rem)',
             lineHeight: 1.1,
-            background: 'linear-gradient(135deg, #db2777, #7c3aed)',
+            background: 'linear-gradient(135deg, #3d7a4a, #2e7d32)',
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
             marginBottom: 16,
           }}>
@@ -151,7 +151,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer style={{
         textAlign: 'center', padding: '48px 24px',
-        background: 'linear-gradient(135deg, #fdf2f8, #ede9fe)',
+        background: 'linear-gradient(135deg, #f0faf1, #e8f5e9)',
         marginTop: 40,
       }}>
         <p style={{ fontFamily: 'var(--font-head)', fontSize: '1.4rem', color: 'var(--pink-d)', marginBottom: 8 }}>
