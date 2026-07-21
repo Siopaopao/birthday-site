@@ -22,7 +22,7 @@ function FloatingEmoji({ emoji, style }) {
 }
 
 const cards = [
-  { to: '/wall',    emoji: '💌', label: 'Wall of Love',    desc: 'Read wishes from everyone who loves you',  color: 'var(--pink)'   },
+  { to: '/wall',    emoji: '💌', label: 'Wall of Messages',    desc: 'Read wishes from everyone who loves you',  color: 'var(--pink)'   },
   { to: '/gallery', emoji: '📸', label: 'Photo Gallery',   desc: 'Beautiful memories captured just for you', color: 'var(--purple)' },
   { to: '/cake',    emoji: '🎂', label: 'Birthday Cake',   desc: 'Blow out the candles and make a wish',     color: 'var(--yellow)' },
   { to: '/private', emoji: '🔒', label: 'Private Notes',   desc: 'Secret messages just for you',             color: 'var(--coral)'  },
@@ -79,12 +79,12 @@ export default function HomePage() {
             Happy Birthday,<br />Diane! 🎉
           </h1>
           <p style={{ fontSize: 'clamp(1rem, 2.5vw, 1.35rem)', color: '#555', maxWidth: 560, margin: '0 auto 36px' }}>
-            A whole day — and a whole website — made just for you.
+            A whole day made just for you.
             You are loved by more people than you know. 💕
           </p>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link to="/wall" className="btn btn-pink" style={{ fontSize: '1rem' }}>
-              💌 See the love wall
+              💌 See the message wall
             </Link>
             <Link to="/cake" className="btn btn-outline" style={{ fontSize: '1rem' }}>
               🎂 Blow the candles
