@@ -50,6 +50,7 @@ export default function AdminPage() {
     } catch {}
   }
 
+  // Approve — broadcasts new message to wall live
   const approve = async (id) => {
     try {
       await api(password).patch(`/admin/messages/${id}/approve-and-broadcast`)
@@ -57,10 +58,11 @@ export default function AdminPage() {
     } catch {}
   }
 
+  // Delete — broadcasts removal to wall live (no refresh needed)
   const reject = async (id) => {
     if (!window.confirm('Delete this message permanently?')) return
     try {
-      await api(password).patch(`/admin/messages/${id}/reject`)
+      await api(password).patch(`/admin/messages/${id}/reject-and-broadcast`)
       setMessages(prev => prev.filter(m => m.id !== id))
     } catch {}
   }
@@ -115,7 +117,8 @@ export default function AdminPage() {
             />
             {error && <span style={{ color: '#dc2626', fontSize: '.82rem' }}>{error}</span>}
           </div>
-          <button type="submit" disabled={loading} className="btn btn-pink" style={{ width: '100%', justifyContent: 'center' }}>
+          <button type="submit" disabled={loading} className="btn btn-pink"
+            style={{ width: '100%', justifyContent: 'center' }}>
             {loading ? 'Checking…' : 'Login'}
           </button>
         </form>
@@ -211,7 +214,7 @@ export default function AdminPage() {
                           {new Date(msg.created_at).toLocaleString()}
                         </p>
                       </div>
-                      {/* ✅ Delete button always visible, Approve only for pending */}
+                      {/* Approve only for pending, Delete always shown */}
                       <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
                         {!msg.approved && (
                           <button
@@ -289,7 +292,7 @@ export default function AdminPage() {
                       <p style={{ fontSize: '.72rem', color: '#aaa', marginBottom: 10 }}>
                         {new Date(photo.created_at).toLocaleString()}
                       </p>
-                      {/* ✅ Approve only for pending, Delete always visible */}
+                      {/* Approve only for pending, Delete always shown */}
                       <div style={{ display: 'flex', gap: 8 }}>
                         {!photo.approved && (
                           <button

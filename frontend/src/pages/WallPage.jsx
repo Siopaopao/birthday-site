@@ -233,6 +233,7 @@ export default function WallPage() {
 
   useEffect(() => { load() }, [])
 
+  // WebSocket: live add AND live delete
   const handleWsMessage = useCallback((event) => {
     if (event.type === 'new_message') {
       const msg = event.data
@@ -241,7 +242,16 @@ export default function WallPage() {
         return [msg, ...prev]
       })
       setNewIds(prev => new Set([...prev, msg.id]))
-      setTimeout(() => setNewIds(prev => { const s = new Set(prev); s.delete(msg.id); return s }), 5000)
+      setTimeout(() => setNewIds(prev => {
+        const s = new Set(prev)
+        s.delete(msg.id)
+        return s
+      }), 5000)
+    }
+
+    // Live delete — removes message instantly without refresh
+    if (event.type === 'delete_message') {
+      setMessages(prev => prev.filter(m => m.id !== event.id))
     }
   }, [])
 
