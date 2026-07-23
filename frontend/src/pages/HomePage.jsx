@@ -3,29 +3,21 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import confetti from 'canvas-confetti'
 
-const EMOJIS = ['🎈','🎀','🌸','💖','✨','🎊','🌷','💕']
-
-function FloatingEmoji({ emoji, style }) {
-  return (
-    <span
-      className="animate-float"
-      style={{
-        position: 'absolute', fontSize: '2rem', userSelect: 'none',
-        animation: `float ${3 + Math.random() * 2}s ease-in-out infinite`,
-        animationDelay: `${Math.random() * 2}s`,
-        ...style,
-      }}
-    >
-      {emoji}
-    </span>
-  )
-}
-
 const cards = [
-  { to: '/wall',    emoji: '💌', label: 'Wall of Messages',    desc: 'Read wishes from everyone who loves you',  color: 'var(--pink)'   },
-  { to: '/gallery', emoji: '📸', label: 'Photo Gallery',   desc: 'Beautiful memories captured just for you', color: 'var(--purple)' },
-  { to: '/cake',    emoji: '🎂', label: 'Birthday Cake',   desc: 'Blow out the candles and make a wish',     color: 'var(--yellow)' },
-  { to: '/private', emoji: '🔒', label: 'Private Notes',   desc: 'Secret messages just for you',             color: 'var(--coral)'  },
+  { to: '/wall',    emoji: '💚', label: 'Wall of Messages', desc: 'Read everything people wrote just for you',    color: 'var(--g-400)'  },
+  { to: '/gallery', emoji: '🌿', label: 'Photo Gallery',    desc: 'Beautiful memories captured for you',          color: 'var(--g-500)'  },
+  { to: '/cake',    emoji: '🎂', label: 'Birthday Cake',    desc: 'Blow out the candles and make a wish',         color: 'var(--gold)'   },
+  { to: '/private', emoji: '🔒', label: 'Private Notes',    desc: 'Secret messages only you can read',            color: 'var(--g-600)'  },
+]
+
+// Matcha-themed floating elements
+const FLOATERS = [
+  { symbol: '🌿', delay: 0,    dur: 3.5 },
+  { symbol: '✨', delay: 0.5,  dur: 4   },
+  { symbol: '🍃', delay: 1,    dur: 3   },
+  { symbol: '🌸', delay: 1.5,  dur: 4.5 },
+  { symbol: '✨', delay: 0.8,  dur: 3.2 },
+  { symbol: '🌿', delay: 2,    dur: 3.8 },
 ]
 
 export default function HomePage() {
@@ -34,130 +26,235 @@ export default function HomePage() {
   useEffect(() => {
     if (fired.current) return
     fired.current = true
-    const end = Date.now() + 2200
+    const end = Date.now() + 2500
     const frame = () => {
-      confetti({ particleCount: 6, spread: 80, origin: { x: Math.random(), y: Math.random() * 0.5 }, colors: ['#f472b6','#fbbf24','#a78bfa','#34d399','#fb7185'] })
+      confetti({
+        particleCount: 5,
+        spread: 70,
+        origin: { x: Math.random(), y: Math.random() * 0.4 },
+        colors: ['#5a9e6a','#8ec49a','#c9a84c','#3d7a4a','#d4e8c2','#c1e0c8'],
+        scalar: 0.9,
+      })
       if (Date.now() < end) requestAnimationFrame(frame)
     }
-    setTimeout(frame, 400)
+    setTimeout(frame, 500)
   }, [])
 
   return (
     <div style={{ minHeight: '100vh', paddingTop: 80 }}>
 
-      {/* Hero */}
+      {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section style={{
-        position: 'relative', overflow: 'hidden',
-        minHeight: '92vh', display: 'flex', flexDirection: 'column',
+        minHeight: '92vh',
+        display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
-        background: 'linear-gradient(135deg, #f0faf1 0%, #d4edda 40%, #e8f5e9 100%)',
-        textAlign: 'center', padding: '60px 24px',
+        background: 'linear-gradient(160deg, var(--g-50) 0%, var(--matcha-latte) 50%, var(--g-100) 100%)',
+        textAlign: 'center',
+        padding: 'clamp(48px, 8vw, 80px) 24px',
+        position: 'relative', overflow: 'hidden',
       }}>
-        {EMOJIS.map((e, i) => (
-          <FloatingEmoji key={i} emoji={e} style={{
-            top:  `${10 + (i * 11) % 70}%`,
-            left: `${5  + (i * 13) % 90}%`,
-            opacity: 0.6,
-          }} />
+
+        {/* Decorative circle blobs */}
+        <div style={{
+          position: 'absolute', width: 400, height: 400, borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(90,158,106,.12) 0%, transparent 70%)',
+          top: '10%', left: '-10%', pointerEvents: 'none',
+        }} />
+        <div style={{
+          position: 'absolute', width: 300, height: 300, borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(201,168,76,.1) 0%, transparent 70%)',
+          bottom: '15%', right: '-5%', pointerEvents: 'none',
+        }} />
+
+        {/* Floating elements — subtle and consistent */}
+        {FLOATERS.map((f, i) => (
+          <motion.span
+            key={i}
+            animate={{ y: [0, -12, 0] }}
+            transition={{ repeat: Infinity, duration: f.dur, delay: f.delay, ease: 'easeInOut' }}
+            style={{
+              position: 'absolute',
+              fontSize: 'clamp(1.2rem, 2.5vw, 1.6rem)',
+              opacity: 0.45,
+              top:  `${15 + (i * 14) % 65}%`,
+              left: `${5  + (i * 17) % 88}%`,
+              pointerEvents: 'none',
+              userSelect: 'none',
+            }}
+          >
+            {f.symbol}
+          </motion.span>
         ))}
 
+        {/* Main content */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
+          transition={{ duration: 0.9, ease: 'easeOut' }}
+          style={{ position: 'relative', zIndex: 2 }}
         >
-          <p style={{ fontSize: '1.1rem', color: 'var(--pink-d)', fontWeight: 500, marginBottom: 8, letterSpacing: 2 }}>
-             07/25/2026 
-          </p>
+          {/* Eyebrow */}
+          <motion.p
+            initial={{ opacity: 0, letterSpacing: 4 }}
+            animate={{ opacity: 1, letterSpacing: 6 }}
+            transition={{ duration: 1, delay: 0.3 }}
+            style={{
+              fontSize: 'clamp(.75rem, 1.5vw, .9rem)',
+              color: 'var(--g-500)',
+              fontWeight: 600,
+              letterSpacing: 6,
+              textTransform: 'uppercase',
+              marginBottom: 20,
+            }}
+          >
+            ✦ Happy Birthday ✦
+          </motion.p>
+
+          {/* Main heading */}
           <h1 style={{
-            fontSize: 'clamp(2.8rem, 8vw, 6rem)',
-            lineHeight: 1.1,
-            background: 'linear-gradient(135deg, #3d7a4a, #2e7d32)',
-            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-            marginBottom: 16,
+            fontFamily: 'var(--font-head)',
+            fontSize: 'clamp(3rem, 9vw, 7rem)',
+            lineHeight: 1.05,
+            color: 'var(--g-600)',
+            marginBottom: 24,
+            fontWeight: 700,
           }}>
-            Happy Birthday,<br />Diane! 🎉
+            Happy Birthday,<br />
+            <span style={{
+              background: 'linear-gradient(135deg, var(--g-500), var(--gold))',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}>
+              Diane
+            </span>{' '}
+            <span style={{ fontSize: 'clamp(2rem, 6vw, 4.5rem)' }}>🎉</span>
           </h1>
-          <p style={{ fontSize: 'clamp(1rem, 2.5vw, 1.35rem)', color: '#555', maxWidth: 560, margin: '0 auto 36px' }}>
-            A whole day made just for you.
-            You are loved by more people than you know. 💕
+
+          {/* Subtitle */}
+          <p style={{
+            fontSize: 'clamp(1rem, 2.5vw, 1.3rem)',
+            color: 'var(--g-400)',
+            maxWidth: 520,
+            margin: '0 auto 40px',
+            lineHeight: 1.7,
+            fontWeight: 400,
+          }}>
+            A whole day — and a whole website — made just for you.
+            You are loved by more people than you know. 💚
           </p>
+
+          {/* CTA buttons */}
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link to="/wall" className="btn btn-pink" style={{ fontSize: '1rem' }}>
-              💌 See the message wall
+            <Link to="/wall" className="btn btn-pink" style={{ fontSize: 'clamp(.9rem, 2vw, 1rem)', padding: '14px 30px' }}>
+              💚 See the messages
             </Link>
-            <Link to="/cake" className="btn btn-outline" style={{ fontSize: '1rem' }}>
+            <Link to="/cake" className="btn btn-outline" style={{ fontSize: 'clamp(.9rem, 2vw, 1rem)', padding: '14px 30px' }}>
               🎂 Blow the candles
             </Link>
           </div>
         </motion.div>
 
+        {/* Scroll indicator */}
         <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ repeat: Infinity, duration: 2 }}
-          style={{ position: 'absolute', bottom: 32, fontSize: '1.5rem', opacity: 0.4 }}
+          animate={{ y: [0, 8, 0] }}
+          transition={{ repeat: Infinity, duration: 2.2, ease: 'easeInOut' }}
+          style={{
+            position: 'absolute', bottom: 32,
+            fontSize: '1.3rem', opacity: 0.35,
+            color: 'var(--g-500)',
+          }}
         >
           ↓
         </motion.div>
       </section>
 
-      {/* Feature cards */}
-      <section className="section">
-        <h2 className="section-title">Everything made for you 🎀</h2>
-        <p className="section-sub">Click anything to explore</p>
+      {/* ── Feature cards ─────────────────────────────────────────────── */}
+      <section className="section" style={{ paddingTop: 72 }}>
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="section-title"
+          style={{ marginBottom: 8 }}
+        >
+          Everything made for you 🌿
+        </motion.h2>
+        <p className="section-sub">Tap anything to explore</p>
 
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: 20,
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gap: 18,
         }}>
           {cards.map((c, i) => (
             <motion.div
               key={c.to}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 28 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
+              transition={{ delay: i * 0.1, duration: 0.5 }}
             >
-              <Link to={c.to} style={{ textDecoration: 'none' }}>
-                <div style={{
-                  background: '#fff', borderRadius: 20, padding: '28px 22px',
-                  textAlign: 'center', border: '2px solid transparent',
-                  boxShadow: '0 2px 16px rgba(0,0,0,.06)',
-                  transition: 'transform .2s, box-shadow .2s, border-color .2s',
-                  cursor: 'pointer',
-                }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.transform = 'translateY(-6px)'
-                    e.currentTarget.style.boxShadow = `0 12px 32px ${c.color}33`
-                    e.currentTarget.style.borderColor = c.color
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.transform = 'translateY(0)'
-                    e.currentTarget.style.boxShadow = '0 2px 16px rgba(0,0,0,.06)'
-                    e.currentTarget.style.borderColor = 'transparent'
+              <Link to={c.to} style={{ textDecoration: 'none', display: 'block' }}>
+                <motion.div
+                  whileHover={{ y: -6, boxShadow: `0 16px 40px ${c.color}22` }}
+                  transition={{ duration: 0.2 }}
+                  style={{
+                    background: '#fff',
+                    borderRadius: 22,
+                    padding: '30px 24px',
+                    textAlign: 'center',
+                    border: '1.5px solid var(--g-100)',
+                    boxShadow: '0 2px 16px rgba(30,61,37,.06)',
+                    cursor: 'pointer',
+                    height: '100%',
                   }}
                 >
-                  <div style={{ fontSize: '2.8rem', marginBottom: 12 }}>{c.emoji}</div>
-                  <h3 style={{ fontFamily: 'var(--font-head)', fontSize: '1.2rem', marginBottom: 6, color: '#1a1a2e' }}>{c.label}</h3>
-                  <p style={{ fontSize: '.88rem', color: '#888', lineHeight: 1.5 }}>{c.desc}</p>
-                </div>
+                  <div style={{
+                    width: 60, height: 60, borderRadius: '50%',
+                    background: `${c.color}18`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '1.8rem', margin: '0 auto 16px',
+                    border: `1.5px solid ${c.color}33`,
+                  }}>
+                    {c.emoji}
+                  </div>
+                  <h3 style={{
+                    fontFamily: 'var(--font-head)',
+                    fontSize: '1.15rem',
+                    color: 'var(--g-600)',
+                    marginBottom: 8,
+                  }}>
+                    {c.label}
+                  </h3>
+                  <p style={{ fontSize: '.87rem', color: 'var(--g-300)', lineHeight: 1.55 }}>
+                    {c.desc}
+                  </p>
+                </motion.div>
               </Link>
             </motion.div>
           ))}
         </div>
       </section>
 
-      {/* Footer */}
+      {/* ── Footer ────────────────────────────────────────────────────── */}
       <footer style={{
-        textAlign: 'center', padding: '48px 24px',
-        background: 'linear-gradient(135deg, #f0faf1, #e8f5e9)',
+        textAlign: 'center',
+        padding: 'clamp(40px, 6vw, 64px) 24px',
+        background: 'linear-gradient(160deg, var(--g-50), var(--cream))',
+        borderTop: '1px solid var(--g-100)',
         marginTop: 40,
       }}>
-        <p style={{ fontFamily: 'var(--font-head)', fontSize: '1.4rem', color: 'var(--pink-d)', marginBottom: 8 }}>
-          Enjoy your day! 💖
+        <p style={{
+          fontFamily: 'var(--font-head)',
+          fontSize: 'clamp(1.1rem, 3vw, 1.5rem)',
+          color: 'var(--g-500)',
+          marginBottom: 8,
+        }}>
+          Enjoy your day! 💚
         </p>
-        <p style={{ color: '#888', fontSize: '.9rem' }}>Happy Birthday, Diane 🌸</p>
+        <p style={{ color: 'var(--g-300)', fontSize: '.9rem' }}>
+          Happy Birthday, Diane 🌿
+        </p>
       </footer>
     </div>
   )

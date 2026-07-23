@@ -2,11 +2,11 @@ import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
 const links = [
-  { to: '/',        label: '🏠 Home' },
-  { to: '/wall',    label: '💌 Wall' },
-  { to: '/gallery', label: '📸 Gallery' },
-  { to: '/cake',    label: '🎂 Cake' },
-  { to: '/private', label: '🔒 Private' },
+  { to: '/',        label: 'Home',     emoji: '🏠' },
+  { to: '/wall',    label: 'Messages', emoji: '💚' },
+  { to: '/gallery', label: 'Gallery',  emoji: '🌿' },
+  { to: '/cake',    label: 'Cake',     emoji: '🎂' },
+  { to: '/private', label: 'Private',  emoji: '🔒' },
 ]
 
 export default function Navbar() {
@@ -14,63 +14,117 @@ export default function Navbar() {
   const [open, setOpen] = useState(false)
 
   return (
-    <nav className="navbar">
-      <Link to="/" style={{ textDecoration: 'none' }}>
-        <span style={{ fontFamily: 'var(--font-head)', fontSize: '1.2rem', color: 'var(--pink-d)' }}>
-          🎀 Diane's Birthday
-        </span>
-      </Link>
+    <>
+      <nav className="navbar">
+        {/* Logo */}
+        <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{
+            width: 32, height: 32, borderRadius: '50%',
+            background: 'linear-gradient(135deg, var(--g-400), var(--g-600))',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '1rem',
+          }}>
+            🌿
+          </div>
+          <span style={{
+            fontFamily: 'var(--font-head)',
+            fontSize: '1.1rem',
+            color: 'var(--g-600)',
+            fontWeight: 700,
+          }}>
+            Diane's Birthday
+          </span>
+        </Link>
 
-      {/* Desktop */}
-      <ul className="navbar-links" style={{ display: 'flex' }}>
-        {links.map(l => (
-          <li key={l.to}>
-            <Link
-              to={l.to}
-              style={{
-                color: pathname === l.to ? 'var(--pink-d)' : undefined,
-                fontWeight: pathname === l.to ? '600' : undefined,
-              }}
-            >
-              {l.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
+        {/* Desktop links */}
+        <ul className="navbar-links" style={{ display: 'flex', gap: 4 }}>
+          {links.map(l => {
+            const active = pathname === l.to
+            return (
+              <li key={l.to} style={{ listStyle: 'none' }}>
+                <Link
+                  to={l.to}
+                  style={{
+                    textDecoration: 'none',
+                    display: 'flex', alignItems: 'center', gap: 5,
+                    padding: '7px 14px',
+                    borderRadius: 50,
+                    fontSize: '.88rem',
+                    fontWeight: active ? 600 : 400,
+                    color: active ? '#fff' : 'var(--g-500)',
+                    background: active ? 'var(--g-500)' : 'transparent',
+                    transition: 'all .2s',
+                  }}
+                  onMouseEnter={e => {
+                    if (!active) {
+                      e.currentTarget.style.background = 'var(--g-100)'
+                      e.currentTarget.style.color = 'var(--g-600)'
+                    }
+                  }}
+                  onMouseLeave={e => {
+                    if (!active) {
+                      e.currentTarget.style.background = 'transparent'
+                      e.currentTarget.style.color = 'var(--g-500)'
+                    }
+                  }}
+                >
+                  <span>{l.emoji}</span>
+                  <span>{l.label}</span>
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
 
-      {/* Mobile hamburger */}
-      <button
-        onClick={() => setOpen(o => !o)}
-        style={{
-          display: 'none',
-          background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer',
-        }}
-        className="hamburger"
-        aria-label="menu"
-      >
-        {open ? '✕' : '☰'}
-      </button>
+        {/* Mobile hamburger */}
+        <button
+          onClick={() => setOpen(o => !o)}
+          className="hamburger"
+          style={{
+            display: 'none',
+            background: 'none', border: 'none',
+            fontSize: '1.4rem', cursor: 'pointer',
+            color: 'var(--g-500)', padding: 4,
+          }}
+          aria-label="Toggle menu"
+        >
+          {open ? '✕' : '☰'}
+        </button>
+      </nav>
 
-      {/* Mobile menu */}
+      {/* Mobile menu overlay */}
       {open && (
         <div style={{
-          position: 'fixed', inset: 0, top: 64, background: 'rgba(255,248,251,.97)',
-          zIndex: 99, display: 'flex', flexDirection: 'column', alignItems: 'center',
-          justifyContent: 'center', gap: 32,
+          position: 'fixed', inset: 0, top: 64,
+          background: 'rgba(242,248,243,.97)',
+          zIndex: 99,
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          gap: 8,
         }}>
-          {links.map(l => (
-            <Link
-              key={l.to} to={l.to}
-              onClick={() => setOpen(false)}
-              style={{
-                fontSize: '1.3rem', textDecoration: 'none',
-                color: pathname === l.to ? 'var(--pink-d)' : '#333',
-                fontWeight: pathname === l.to ? '700' : '400',
-              }}
-            >
-              {l.label}
-            </Link>
-          ))}
+          {links.map(l => {
+            const active = pathname === l.to
+            return (
+              <Link
+                key={l.to} to={l.to}
+                onClick={() => setOpen(false)}
+                style={{
+                  textDecoration: 'none',
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '14px 32px',
+                  borderRadius: 50,
+                  fontSize: '1.15rem',
+                  fontWeight: active ? 700 : 400,
+                  color: active ? '#fff' : 'var(--g-600)',
+                  background: active ? 'var(--g-500)' : 'transparent',
+                  width: 220, justifyContent: 'center',
+                }}
+              >
+                <span>{l.emoji}</span>
+                <span>{l.label}</span>
+              </Link>
+            )
+          })}
         </div>
       )}
 
@@ -80,6 +134,6 @@ export default function Navbar() {
           .hamburger    { display: block !important; }
         }
       `}</style>
-    </nav>
+    </>
   )
 }
