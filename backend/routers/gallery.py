@@ -1,19 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Header
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text
+from sqlalchemy import Column, Integer, String, Boolean, DateTime
 from typing import List, Optional
 from datetime import datetime
-import os, uuid, aiofiles
+import os
 
 from database import get_db, Base, engine
 from pydantic import BaseModel
+from cloudinary_helper import upload_image, delete_image, get_public_id
 
 router = APIRouter(prefix="/gallery", tags=["gallery"])
 
-UPLOAD_DIR = "static/uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
-ALLOWED_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp"}
-MAX_SIZE = 10 * 1024 * 1024  # 10 MB
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
 
 
@@ -28,11 +25,10 @@ class GalleryPhoto(Base):
     created_at  = Column(DateTime, default=datetime.utcnow)
 
 
-# Create table if it doesn't exist
 Base.metadata.create_all(bind=engine)
 
 
-# ── Schema ────────────────────────────────────────────────────────────────────
+# ── Schema ─────────────────────────────────────────────────────────────────────
 class PhotoOut(BaseModel):
     id: int
     sender_name: str
@@ -43,38 +39,31 @@ class PhotoOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
-# ── Routes ────────────────────────────────────────────────────────────────────
+# ── Routes ─────────────────────────────────────────────────────────────────────
 @router.post("", status_code=201)
 async def submit_photo(
-    sender_name: Optional[str] = Form(None),
+    sender_name: str = Form(...),
     caption: Optional[str] = Form(None),
     photo: UploadFile = File(...),
     db: Session = Depends(get_db),
 ):
-    if photo.content_type not in ALLOWED_TYPES:
-        raise HTTPException(400, "Only JPEG, PNG, GIF, or WebP images are allowed")
+    if not sender_name.strip():
+        raise HTTPException(400, "Name is required")
 
-    contents = await photo.read()
-    if len(contents) > MAX_SIZE:
-        raise HTTPException(400, "Image must be under 10 MB")
-
-    ext = photo.filename.rsplit(".", 1)[-1].lower() if "." in photo.filename else "jpg"
-    filename = f"{uuid.uuid4()}.{ext}"
-    filepath = os.path.join(UPLOAD_DIR, filename)
-
-    async with aiofiles.open(filepath, "wb") as f:
-        await f.write(contents)
+    try:
+        photo_url = await upload_image(photo, folder="birthday-site/gallery")
+    except ValueError as e:
+        raise HTTPException(400, str(e))
 
     db_photo = GalleryPhoto(
-        sender_name=sender_name.strip() if sender_name else "",
+        sender_name=sender_name.strip(),
         caption=caption.strip() if caption and caption.strip() else None,
-        photo_url=f"/static/uploads/{filename}",
+        photo_url=photo_url,
         approved=False,
     )
     db.add(db_photo)
     db.commit()
     db.refresh(db_photo)
-
     return {"id": db_photo.id, "message": "Photo submitted! It will appear after approval 📸"}
 
 
@@ -88,27 +77,14 @@ def get_approved_photos(db: Session = Depends(get_db)):
     )
 
 
-# ── Admin routes ──────────────────────────────────────────────────────────────
-def require_admin(x_admin_password: Optional[str] = Header(None)):
-    if x_admin_password != ADMIN_PASSWORD:
-        raise HTTPException(401, "Unauthorized")
-    return True
-
-
+# ── Admin ──────────────────────────────────────────────────────────────────────
 @router.get("/admin/all")
-def list_all_photos(
-    db: Session = Depends(get_db),
-    _: bool = Depends(require_admin),
-):
+def list_all_photos(db: Session = Depends(get_db)):
     return db.query(GalleryPhoto).order_by(GalleryPhoto.created_at.desc()).all()
 
 
 @router.patch("/admin/{photo_id}/approve")
-def approve_photo(
-    photo_id: int,
-    db: Session = Depends(get_db),
-    _: bool = Depends(require_admin),
-):
+def approve_photo(photo_id: int, db: Session = Depends(get_db)):
     photo = db.query(GalleryPhoto).filter(GalleryPhoto.id == photo_id).first()
     if not photo:
         raise HTTPException(404, "Photo not found")
@@ -118,18 +94,14 @@ def approve_photo(
 
 
 @router.delete("/admin/{photo_id}")
-def delete_photo(
-    photo_id: int,
-    db: Session = Depends(get_db),
-    _: bool = Depends(require_admin),
-):
+def delete_photo(photo_id: int, db: Session = Depends(get_db)):
     photo = db.query(GalleryPhoto).filter(GalleryPhoto.id == photo_id).first()
     if not photo:
         raise HTTPException(404, "Photo not found")
-    # Delete file from disk
-    filepath = photo.photo_url.replace("/static/", "static/")
-    if os.path.exists(filepath):
-        os.remove(filepath)
+    # Delete from Cloudinary
+    public_id = get_public_id(photo.photo_url)
+    if public_id:
+        delete_image(public_id)
     db.delete(photo)
     db.commit()
     return {"ok": True}

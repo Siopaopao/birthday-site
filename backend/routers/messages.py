@@ -1,17 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from typing import List, Optional
-import os, uuid, aiofiles
 
 from database import get_db, WallMessage
 from schemas import WallMessageCreate, WallMessageOut
+from cloudinary_helper import upload_image
 
 router = APIRouter(prefix="/messages", tags=["messages"])
-
-UPLOAD_DIR = "static/uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
-ALLOWED_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp"}
-MAX_SIZE = 5 * 1024 * 1024   # 5 MB
 
 
 @router.post("", status_code=201)
@@ -23,7 +18,7 @@ async def post_message(
     photo: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
 ):
-    # Validate text fields
+    # Validate
     data = WallMessageCreate(
         sender_name=sender_name,
         relationship=relationship,
@@ -33,17 +28,10 @@ async def post_message(
 
     photo_url = None
     if photo and photo.filename:
-        if photo.content_type not in ALLOWED_TYPES:
-            raise HTTPException(400, "Only JPEG, PNG, GIF, or WebP images are allowed")
-        contents = await photo.read()
-        if len(contents) > MAX_SIZE:
-            raise HTTPException(400, "Image must be under 5 MB")
-        ext = photo.filename.rsplit(".", 1)[-1].lower()
-        filename = f"{uuid.uuid4()}.{ext}"
-        filepath = os.path.join(UPLOAD_DIR, filename)
-        async with aiofiles.open(filepath, "wb") as f:
-            await f.write(contents)
-        photo_url = f"/static/uploads/{filename}"
+        try:
+            photo_url = await upload_image(photo, folder="birthday-site/wall")
+        except ValueError as e:
+            raise HTTPException(400, str(e))
 
     db_msg = WallMessage(
         sender_name=data.sender_name,

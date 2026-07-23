@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, Header # type: ignore
-from sqlalchemy.orm import Session # type: ignore
+from fastapi import APIRouter, Depends, HTTPException, Header
+from sqlalchemy.orm import Session
 from typing import List, Optional
 import os
 
 from database import get_db, WallMessage
 from schemas import WallMessageAdmin
+from cloudinary_helper import delete_image, get_public_id
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -48,15 +49,11 @@ def reject_message(
     msg = db.query(WallMessage).filter(WallMessage.id == msg_id).first()
     if not msg:
         raise HTTPException(404, "Message not found")
-    # If the message has an attached photo, delete the file from disk
+    # Delete photo from Cloudinary if exists
     if getattr(msg, 'photo_url', None):
-        filepath = msg.photo_url.replace('/static/', 'static/')
-        try:
-            if os.path.exists(filepath):
-                os.remove(filepath)
-        except Exception:
-            # don't block deletion if file removal fails
-            pass
+        public_id = get_public_id(msg.photo_url)
+        if public_id:
+            delete_image(public_id)
     db.delete(msg)
     db.commit()
     return {"ok": True, "id": msg_id}
