@@ -107,7 +107,7 @@ export default function HomePage() {
               marginBottom: 20,
             }}
           >
-            ✦ Happy Birthday ✦
+            07/25/2026
           </motion.p>
 
           {/* Main heading */}
@@ -139,7 +139,7 @@ export default function HomePage() {
             lineHeight: 1.7,
             fontWeight: 400,
           }}>
-            A whole day — and a whole website — made just for you.
+            A whole day made just for you.
             You are loved by more people than you know. 💚
           </p>
 
