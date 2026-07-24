@@ -4,6 +4,13 @@ import axios from 'axios'
 
 const API = import.meta.env.VITE_API_URL
 
+// Cloudinary URLs are already absolute (start with http). Local/dev uploads
+// are relative ("/static/uploads/...") and need the API origin prepended.
+function resolveImageUrl(photoUrl) {
+  if (!photoUrl) return ''
+  return photoUrl.startsWith('http') ? photoUrl : `${API}${photoUrl}`
+}
+
 const api = (password) => axios.create({
   baseURL: API,
   headers: { 'x-admin-password': password },
@@ -269,13 +276,17 @@ export default function AdminPage() {
                     }}
                   >
                     <img
-                      src={`${API}${photo.photo_url}`}
+                      src={resolveImageUrl(photo.photo_url)}
                       alt=""
                       style={{ width: '100%', height: 180, objectFit: 'cover', display: 'block' }}
                     />
                     <div style={{ padding: '12px 14px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                        <span style={{ fontWeight: 600, fontSize: '.9rem' }}>{photo.sender_name}</span>
+                        {photo.sender_name && photo.sender_name !== 'Anonymous' ? (
+                          <span style={{ fontWeight: 600, fontSize: '.9rem' }}>{photo.sender_name}</span>
+                        ) : (
+                          <span />
+                        )}
                         <span style={{
                           borderRadius: 20, padding: '2px 8px', fontSize: '.72rem', fontWeight: 600,
                           background: photo.approved ? '#d1fae5' : '#fef3c7',
