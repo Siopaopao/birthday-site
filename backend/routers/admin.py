@@ -5,7 +5,6 @@ import os
 
 from database import get_db, WallMessage
 from schemas import WallMessageAdmin
-from cloudinary_helper import delete_image, get_public_id
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -16,6 +15,38 @@ def require_admin(x_admin_password: Optional[str] = Header(None)):
     if x_admin_password != ADMIN_PASSWORD:
         raise HTTPException(401, "Unauthorized")
     return True
+
+
+def _delete_photo(photo_url: str):
+    """Delete photo from Cloudinary or local disk."""
+    if not photo_url:
+        return
+    if photo_url.startswith("http") and os.getenv("CLOUDINARY_CLOUD_NAME"):
+        try:
+            import cloudinary
+            import cloudinary.uploader
+            cloudinary.config(
+                cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+                api_key=os.getenv("CLOUDINARY_API_KEY"),
+                api_secret=os.getenv("CLOUDINARY_API_SECRET"),
+                secure=True,
+            )
+            parts = photo_url.split("/upload/")
+            if len(parts) >= 2:
+                after = parts[1]
+                if after.startswith("v") and "/" in after:
+                    after = after.split("/", 1)[1]
+                public_id = after.rsplit(".", 1)[0]
+                cloudinary.uploader.destroy(public_id)
+        except Exception:
+            pass
+    else:
+        filepath = photo_url.replace("/static/", "static/")
+        try:
+            if os.path.exists(filepath):
+                os.remove(filepath)
+        except Exception:
+            pass
 
 
 @router.get("/messages", response_model=List[WallMessageAdmin])
@@ -49,11 +80,8 @@ def reject_message(
     msg = db.query(WallMessage).filter(WallMessage.id == msg_id).first()
     if not msg:
         raise HTTPException(404, "Message not found")
-    # Delete photo from Cloudinary if exists
     if getattr(msg, 'photo_url', None):
-        public_id = get_public_id(msg.photo_url)
-        if public_id:
-            delete_image(public_id)
+        _delete_photo(msg.photo_url)
     db.delete(msg)
     db.commit()
     return {"ok": True, "id": msg_id}
