@@ -4,6 +4,13 @@ import Toast from '../components/Toast'
 
 const API = import.meta.env.VITE_API_URL
 
+// Cloudinary URLs are already absolute (start with http). Local/dev uploads
+// are relative ("/static/uploads/...") and need the API origin prepended.
+function resolveImageUrl(photoUrl) {
+  if (!photoUrl) return ''
+  return photoUrl.startsWith('http') ? photoUrl : `${API}${photoUrl}`
+}
+
 // ── Lightbox ──────────────────────────────────────────────────────────────────
 function Lightbox({ photos, index, onClose }) {
   const [current, setCurrent] = useState(index)
@@ -81,7 +88,7 @@ function Lightbox({ photos, index, onClose }) {
         }}
       >
         <img
-          src={`${API}${photo.photo_url}`}
+          src={resolveImageUrl(photo.photo_url)}
           alt={photo.caption || ''}
           style={{
             maxWidth: '85vw', maxHeight: '75vh',
@@ -138,7 +145,7 @@ function PhotoCard({ photo, index, onClick }) {
       whileHover={{ scale: 1.02, boxShadow: '0 8px 32px rgba(244,114,182,.2)' }}
     >
       <img
-        src={`${API}${photo.photo_url}`}
+        src={resolveImageUrl(photo.photo_url)}
         alt={photo.caption || ''}
         style={{
           width: '100%', aspectRatio: '4/3',
