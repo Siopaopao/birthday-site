@@ -124,18 +124,17 @@ class PhotoAdminOut(BaseModel):
 # ── Public routes ─────────────────────────────────────────────────────────────
 @router.post("", status_code=201)
 async def submit_photo(
-    sender_name: str = Form(...),
+    sender_name: Optional[str] = Form(None),
     caption: Optional[str] = Form(None),
     photo: UploadFile = File(...),
     db: Session = Depends(get_db),
 ):
-    if not sender_name.strip():
-        raise HTTPException(400, "Name is required")
+    clean_name = sender_name.strip() if sender_name and sender_name.strip() else "Anonymous"
 
     photo_url = await _upload(photo, folder="birthday-site/gallery")
 
     db_photo = GalleryPhoto(
-        sender_name=sender_name.strip(),
+        sender_name=clean_name,
         caption=caption.strip() if caption and caption.strip() else None,
         photo_url=photo_url,
         approved=False,
